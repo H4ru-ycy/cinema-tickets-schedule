@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="navy">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>シネマチケットメモ</title>
+<style>
+  :root{
+    --bg:#0f1420;
+    --glow:rgba(232,181,68,.16);
+    --paper:#f8f4ea;
+    --paper-past:#e7e3d8;
+    --ink:#1b1a17;
+    --ink-soft:#6a6459;
+    --line:#d9d3c4;
+    --gold:#e8b544;
+    --gold-deep:#c99622;
+    --red:#e0524f;
+    --panel:#171d2b;
+    --panel-2:#1f2637;
+    --panel-line:#2c3446;
+    --panel-ink:#eef1f6;
+    --panel-ink-soft:#9aa3b5;
+    --radius:16px;
+  }
+  [data-theme="black"]{
+    --bg:#000000;
+    --glow:rgba(232,181,68,.10);
+    --paper:#fafafa;
+    --paper-past:#e6e6e6;
+    --ink:#141414;
+    --ink-soft:#666;
+    --line:#dcdcdc;
+    --panel:#101010;
+    --panel-2:#191919;
+    --panel-line:#2b2b2b;
+    --panel-ink:#f2f2f2;
+    --panel-ink-soft:#8f8f8f;
+  }
+  [data-theme="white"]{
+    --bg:#ecedf1;
+    --glow:rgba(181,133,15,.10);
+    --paper:#ffffff;
+    --paper-past:#f1f2f5;
+    --ink:#1c2029;
+    --ink-soft:#7a808c;
+    --line:#e3e6ec;
+    --gold:#b5850f;
+    --gold-deep:#8f6a0b;
+    --red:#d23f3c;
+    --panel:#ffffff;
+    --panel-2:#f3f4f7;
+    --panel-line:#e2e5ec;
+    --panel-ink:#1c2029;
+    --panel-ink-soft:#6b7280;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--panel-ink);
+    font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP",Meiryo,system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    line-height:1.6;
+    min-height:100vh;
+    min-height:100dvh;
+    transition:background .3s ease, color .3s ease;
+  }
+  body::before{
+    content:"";
+    position:fixed;
+    top:-30vh;left:50%;
+    transform:translateX(-50%);
+    width:120vw;height:80vh;
+    background:radial-gradient(closest-side, var(--glow), transparent 70%);
+    pointer-events:none;
+    z-index:0;
+  }
+  .wrap{
+    position:relative;
+    z-index:1;
+    max-width:640px;
+    margin:0 auto;
+    padding:max(20px,env(safe-area-inset-top)) 16px calc(48px + env(safe-area-inset-bottom));
+  }
+
+  /* Hamburger */
+  .hamburger{
+    position:absolute;
+    top:max(20px,env(safe-area-inset-top));
+    left:12px;
+    z-index:3;
+    width:42px;height:42px;
+    border:none;background:transparent;cursor:pointer;
+    display:flex;flex-direction:column;justify-content:center;gap:5px;
+    padding:10px;border-radius:10px;
+  }
+  .hamburger span{display:block;height:2px;background:var(--panel-ink);border-radius:2px;}
+  .hamburger:hover{background:rgba(128,128,128,.12);}
+
+  /* Header */
+  header{text-align:center;padding:18px 0 22px;}
+  .marquee{display:inline-block;font-size:12px;letter-spacing:.28em;color:var(--gold);padding-bottom:6px;}
+  h1{margin:2px 0 0;font-size:29px;font-weight:800;letter-spacing:.02em;}
+  .tally{margin-top:10px;font-size:13px;color:var(--panel-ink-soft);}
+  .tally b{color:var(--gold);font-weight:700;font-variant-numeric:tabular-nums;}
+
+  /* Primary add button */
+  .add-btn{
+    display:block;width:100%;margin:6px 0 26px;padding:15px 18px;
+    background:var(--gold);color:#241c04;border:none;border-radius:13px;
+    font-size:16px;font-weight:800;font-family:inherit;cursor:pointer;
+    box-shadow:0 8px 22px -10px var(--gold);
+    transition:transform .12s ease, filter .12s ease;
+  }
+  .add-btn:hover{filter:brightness(1.05);}
+  .add-btn:active{transform:translateY(1px);}
+
+  /* Sections */
+  .section-head{display:flex;align-items:baseline;gap:9px;margin:8px 2px 14px;}
+  .section-head h2{margin:0;font-size:15px;font-weight:700;color:var(--panel-ink);}
+  .section-head .count{font-size:12px;color:var(--panel-ink-soft);font-variant-numeric:tabular-nums;}
+  .section-head.past h2{color:var(--panel-ink-soft);}
+  .section-head.now h2{color:var(--red);}
+  .section + .section{margin-top:34px;}
+
+  /* Ticket card */
+  .ticket{
+    position:relative;background:var(--paper);color:var(--ink);
+    border-radius:12px;margin-bottom:11px;
+    box-shadow:0 4px 14px -10px rgba(0,0,0,.5);overflow:hidden;
+    -webkit-tap-highlight-color:transparent;
+  }
+  [data-theme="white"] .ticket{border:1px solid var(--line);box-shadow:0 3px 10px -8px rgba(20,30,60,.3);}
+  .ticket.past{background:var(--paper-past);opacity:.82;}
+  .ticket.now{box-shadow:0 4px 14px -8px rgba(224,82,79,.5);}
+  .ticket.now::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--red);z-index:2;}
+  .ticket.show-actions{box-shadow:0 6px 20px -8px rgba(0,0,0,.6);}
+  .ticket-body{padding:13px 15px;display:flex;gap:13px;align-items:flex-start;}
+  .when{flex:0 0 auto;text-align:center;min-width:52px;padding-right:12px;border-right:1px solid var(--line);}
+  .when .md{font-size:20px;font-weight:800;line-height:1.05;font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .when .dow{font-size:11px;color:var(--ink-soft);margin-top:1px;}
+  .when .time{margin-top:5px;font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--ink);}
+  .when .time.none{font-size:11px;color:var(--ink-soft);font-weight:600;}
+  .when .endtime{font-size:12px;color:var(--ink-soft);font-weight:600;font-variant-numeric:tabular-nums;margin-top:2px;white-space:nowrap;}
+  .info{flex:1 1 auto;min-width:0;}
+  .title{font-size:16px;font-weight:800;line-height:1.3;word-break:break-word;}
+  .theater{margin-top:3px;font-size:13px;color:var(--ink-soft);word-break:break-word;}
+  .meta-row{margin-top:7px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+  .badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;letter-spacing:.02em;white-space:nowrap;}
+  .fmt-imax{background:#215d9c;color:#fff;}
+  .fmt-4dx{background:#d96a1c;color:#fff;}
+  .fmt-dolby{background:#6b46c1;color:#fff;}
+  .fmt-screenx{background:#2f855a;color:#fff;}
+  .fmt-3d{background:#0d9488;color:#fff;}
+  .fmt-special{background:#475569;color:#fff;}
+  .fmt-2d{background:transparent;color:var(--ink-soft);border:1px solid var(--line);}
+  .badge.voice{background:#d6336c;color:#fff;}
+  .screen-tag{font-size:12px;color:var(--ink-soft);}
+  .stat{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;}
+  .stat .dot{width:7px;height:7px;border-radius:50%;}
+  .stat.now{color:var(--red);}
+  .stat.now .dot{background:var(--red);animation:pulse 1.6s ease-in-out infinite;}
+  .stat.next{color:var(--red);}
+  .stat.next .dot{background:var(--red);}
+  .stat.done{color:var(--ink-soft);}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+  .details{margin-top:8px;display:flex;flex-wrap:wrap;align-items:center;gap:5px 10px;font-size:13px;color:var(--ink-soft);}
+  .details .seat-lbl{font-size:11px;color:var(--ink-soft);margin-right:3px;}
+  .details .seat-val{font-size:15px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:.02em;}
+  .details .seat-val.none{font-size:12px;font-weight:600;color:var(--ink-soft);}
+  .details .price{font-variant-numeric:tabular-nums;}
+  .mubi{font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;border:1.5px solid var(--gold-deep);color:var(--gold-deep);letter-spacing:.03em;}
+  .mubi.off{border-color:var(--line);color:var(--ink-soft);font-weight:600;}
+  .sub{margin-top:6px;font-size:12px;color:var(--ink-soft);word-break:break-word;}
+
+  .card-actions{display:none;border-top:1px solid var(--line);}
+  .ticket.show-actions .card-actions{display:flex;}
+  .card-actions button{flex:1;padding:12px;background:none;border:none;font-family:inherit;font-size:14px;font-weight:700;color:var(--ink-soft);cursor:pointer;}
+  .card-actions button:hover{background:rgba(0,0,0,.04);color:var(--ink);}
+  .card-actions button:active{background:rgba(0,0,0,.06);}
+  .card-actions button + button{border-left:1px solid var(--line);}
+  .card-actions .del{color:var(--red);}
+
+  /* Empty state */
+  .empty{text-align:center;padding:44px 20px;color:var(--panel-ink-soft);}
+  .empty .big{font-size:38px;margin-bottom:12px;}
+  .empty p{margin:6px 0;font-size:14px;}
+
+  /* Shared overlay panel (add/edit) */
+  .overlay{position:fixed;inset:0;background:rgba(6,9,15,.72);backdrop-filter:blur(3px);z-index:50;display:none;align-items:flex-end;justify-content:center;}
+  .overlay.open{display:flex;}
+  .panel{
+    background:var(--panel);width:100%;max-width:640px;max-height:92vh;max-height:92dvh;overflow-y:auto;
+    border-radius:20px 20px 0 0;border-top:3px solid var(--gold);
+    padding:20px 18px calc(24px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch;
+  }
+  @media(min-width:641px){
+    .overlay{align-items:center;padding:20px;}
+    .panel{border-radius:20px;}
+  }
+  .panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+  .panel-head h3{margin:0;font-size:19px;font-weight:800;}
+  .x-btn{background:none;border:none;color:var(--panel-ink-soft);font-size:26px;line-height:1;cursor:pointer;padding:2px 6px;}
+  .tabs{display:flex;gap:6px;background:var(--panel-2);padding:5px;border-radius:11px;margin-bottom:16px;}
+  .tabs button{flex:1;padding:10px;border:none;background:none;border-radius:8px;font-family:inherit;font-size:14px;font-weight:700;color:var(--panel-ink-soft);cursor:pointer;}
+  .tabs button.active{background:var(--gold);color:#241c04;}
+
+  .mail-box{margin-bottom:18px;}
+  .mail-box textarea{width:100%;min-height:150px;resize:vertical;background:var(--panel-2);border:1px solid var(--panel-line);border-radius:11px;color:var(--panel-ink);font-family:inherit;font-size:14px;padding:12px 13px;line-height:1.55;}
+  .mail-actions{display:flex;gap:10px;align-items:center;margin-top:10px;}
+  .read-btn{flex:1;padding:12px;background:var(--panel-2);border:1px solid var(--gold-deep);color:var(--gold);border-radius:10px;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;}
+  .read-btn:hover{filter:brightness(1.08);}
+  .sample-link{background:none;border:none;color:var(--panel-ink-soft);font-family:inherit;font-size:12.5px;text-decoration:underline;cursor:pointer;padding:6px;}
+  .read-note{margin-top:10px;font-size:12.5px;color:var(--panel-ink-soft);display:none;}
+  .read-note.show{display:block;}
+  .read-note.ok{color:#3f9d63;}
+  [data-theme="navy"] .read-note.ok,[data-theme="black"] .read-note.ok{color:#7fcf9a;}
+
+  /* Form */
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:12.5px;font-weight:700;color:var(--panel-ink-soft);margin-bottom:5px;}
+  .field label .opt{font-weight:400;color:var(--panel-ink-soft);opacity:.8;}
+  .field input,.field select,.field textarea{width:100%;background:var(--panel-2);border:1px solid var(--panel-line);border-radius:10px;color:var(--panel-ink);font-family:inherit;font-size:15px;padding:11px 12px;}
+  .field textarea{min-height:56px;resize:vertical;}
+  .field-hint{font-size:11.5px;color:var(--panel-ink-soft);margin-top:5px;}
+  .row2{display:flex;gap:10px;}
+  .row2 .field{flex:1;}
+  .toggle-row{display:flex;background:var(--panel-2);border:1px solid var(--panel-line);border-radius:10px;overflow:hidden;}
+  .toggle-row button{flex:1;padding:11px;border:none;background:none;font-family:inherit;font-size:14px;font-weight:700;color:var(--panel-ink-soft);cursor:pointer;}
+  .toggle-row button.on{background:var(--gold);color:#241c04;}
+  .save-btn{display:block;width:100%;margin-top:20px;padding:15px;background:var(--gold);color:#241c04;border:none;border-radius:12px;font-family:inherit;font-size:16px;font-weight:800;cursor:pointer;}
+  .save-btn:active{transform:translateY(1px);}
+  .form-err{color:var(--red);font-size:13px;margin-top:10px;text-align:center;display:none;}
+  .form-err.show{display:block;}
+
+  /* Drawer menu */
+  .menu-overlay{position:fixed;inset:0;background:rgba(6,9,15,.72);backdrop-filter:blur(3px);z-index:60;display:none;}
+  .menu-overlay.open{display:block;}
+  .drawer{
+    position:absolute;top:0;left:0;bottom:0;width:min(330px,86vw);
+    background:var(--panel);border-right:1px solid var(--panel-line);
+    padding:max(20px,env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom));
+    overflow-y:auto;transform:translateX(-100%);transition:transform .25s ease;-webkit-overflow-scrolling:touch;
+  }
+  .menu-overlay.open .drawer{transform:translateX(0);}
+  .drawer-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;}
+  .drawer-head h3{margin:0;font-size:19px;font-weight:800;}
+  .drawer-sec{margin-bottom:28px;}
+  .drawer-label{font-size:12.5px;font-weight:700;color:var(--panel-ink-soft);margin-bottom:11px;}
+  .theme-opts{display:flex;flex-direction:column;gap:8px;}
+  .theme-opts button{display:flex;align-items:center;gap:11px;width:100%;padding:12px 13px;background:var(--panel-2);border:1px solid var(--panel-line);border-radius:10px;font-family:inherit;font-size:15px;font-weight:600;color:var(--panel-ink);cursor:pointer;text-align:left;}
+  .theme-opts button.active{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold);color:var(--gold);}
+  .theme-opts .sw{width:20px;height:20px;border-radius:50%;flex:0 0 auto;border:1px solid rgba(128,128,128,.4);}
+  .sw-white{background:#f2f3f6;}
+  .sw-navy{background:#0f1420;}
+  .sw-black{background:#000;}
+  .drawer-note{font-size:12.5px;color:var(--panel-ink-soft);line-height:1.55;margin:0 0 8px;}
+  .drawer-note.sub{font-size:11.5px;opacity:.85;margin-bottom:12px;}
+  .sender-row{display:flex;gap:8px;margin-bottom:8px;}
+  .sender-row input{flex:1;background:var(--panel-2);border:1px solid var(--panel-line);border-radius:9px;color:var(--panel-ink);font-family:inherit;font-size:14px;padding:10px 11px;}
+  .sender-rm{flex:0 0 auto;width:40px;border:1px solid var(--panel-line);background:var(--panel-2);color:var(--panel-ink-soft);border-radius:9px;font-size:18px;cursor:pointer;}
+  .sender-rm:hover{color:var(--red);border-color:var(--red);}
+  .add-sender{margin-top:4px;width:100%;padding:11px;background:none;border:1px dashed var(--panel-line);border-radius:9px;color:var(--gold);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;}
+  .add-sender:hover{border-color:var(--gold);}
+
+  /* toast */
+  .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);background:var(--panel-2);border:1px solid var(--panel-line);color:var(--panel-ink);padding:11px 18px;border-radius:11px;font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .25s ease, transform .25s ease;z-index:80;box-shadow:0 10px 30px -12px rgba(0,0,0,.7);}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  :focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <button class="hamburger" id="menuBtn" aria-label="メニューを開く"><span></span><span></span><span></span></button>
+
+  <header>
+    <div class="marquee">NOW SHOWING</div>
+    <h1>シネマチケットメモ</h1>
+    <div class="tally" id="tally"></div>
+  </header>
+
+  <button class="add-btn" id="openAdd">＋ チケットを追加</button>
+
+  <div id="list"></div>
+</div>
+
+<!-- Drawer menu -->
+<div class="menu-overlay" id="menuOverlay">
+  <nav class="drawer">
+    <div class="drawer-head">
+      <h3>メニュー</h3>
+      <button class="x-btn" id="menuClose" aria-label="閉じる">×</button>
+    </div>
+
+    <div class="drawer-sec">
+      <div class="drawer-label">表示モード</div>
+      <div class="theme-opts" id="themeOpts">
+        <button type="button" data-theme="white"><span class="sw sw-white"></span>ホワイト</button>
+        <button type="button" data-theme="navy"><span class="sw sw-navy"></span>ネイビー</button>
+        <button type="button" data-theme="black"><span class="sw sw-black"></span>ブラック</button>
+      </div>
+    </div>
+
+    <div class="drawer-sec">
+      <div class="drawer-label">送信元メールアドレス</div>
+      <p class="drawer-note">送信元メールアドレスを入力してください(例:example@theater-ticket.co.jp)</p>
+      <p class="drawer-note sub">※ メールを From（送信元）の行ごと貼り付けると、映画館の自動判定に使われます。</p>
+      <div id="senderList"></div>
+      <button class="add-sender" id="addSender" type="button">＋ アドレスを追加</button>
+    </div>
+  </nav>
+</div>
+
+<!-- Add / edit panel -->
+<div class="overlay" id="overlay">
+  <div class="panel">
+    <div class="panel-head">
+      <h3 id="panelTitle">チケットを追加</h3>
+      <button class="x-btn" id="closeAdd" aria-label="閉じる">×</button>
+    </div>
+
+    <div class="tabs" id="tabs">
+      <button data-tab="manual" class="active">手入力</button>
+      <button data-tab="mail">メールから読み取り</button>
+    </div>
+
+    <div class="mail-box" id="mailBox">
+      <textarea id="mailInput" placeholder="予約完了メールの本文をここに貼り付けてください"></textarea>
+      <div class="mail-actions">
+        <button class="read-btn" id="readBtn">読み取る</button>
+        <button class="sample-link" id="sampleBtn">サンプルで試す</button>
+      </div>
+      <div class="read-note" id="readNote"></div>
+    </div>
+
+    <form id="form" autocomplete="off">
+      <div class="field">
+        <label for="f-title">上映タイトル</label>
+        <input type="text" id="f-title" placeholder="例：名探偵コナン">
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label for="f-date">上映日</label>
+          <input type="date" id="f-date">
+        </div>
+        <div class="field">
+          <label for="f-time">開始時刻 <span class="opt">任意</span></label>
+          <input type="time" id="f-time">
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label for="f-endtime">終了時刻 <span class="opt">任意</span></label>
+          <input type="time" id="f-endtime">
+        </div>
+        <div class="field">
+          <label for="f-runtime">上映時間（分） <span class="opt">任意</span></label>
+          <input type="text" id="f-runtime" inputmode="numeric" placeholder="例：120">
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-hint">「終了時刻」か「上映時間」を入れると「鑑賞中／鑑賞済み」を判定します（終了時刻を優先。両方空欄なら約2時間として判定）。</div>
+      </div>
+      <div class="field">
+        <label for="f-theater">映画館</label>
+        <input type="text" id="f-theater" placeholder="例：TOHOシネマズ 新宿">
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label for="f-format">上映フォーマット</label>
+          <select id="f-format">
+            <option value="">選択 / 未設定</option>
+            <option>2D</option>
+            <option>3D</option>
+            <option>IMAX</option>
+            <option>IMAXレーザー</option>
+            <option>4DX</option>
+            <option>4DX3D</option>
+            <option>MX4D</option>
+            <option>Dolby Cinema</option>
+            <option>Dolby Atmos</option>
+            <option>ScreenX</option>
+            <option>BESTIA</option>
+            <option>TCX</option>
+            <option>ULTRA 4DX</option>
+            <option>LIVE ZOUND Ver.1.6.8</option>
+            <option>(ｲﾍﾞﾝﾄ版) 【極音02】</option>
+            <option>【極音Atmos】</option>
+            <option value="__other">その他（自由入力）</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="f-screen">スクリーン <span class="opt">任意</span></label>
+          <input type="text" id="f-screen" placeholder="例：スクリーン9">
+        </div>
+      </div>
+      <div class="field" id="fmtOtherWrap" style="display:none;">
+        <label for="f-format-other">フォーマット（自由入力）</label>
+        <input type="text" id="f-format-other" placeholder="例：LX">
+      </div>
+      <div class="field">
+        <label>上映区分</label>
+        <div class="toggle-row" id="voiceToggle">
+          <button type="button" data-voice="1">発声可能上映</button>
+          <button type="button" data-voice="0" class="on">通常上映</button>
+        </div>
+      </div>
+      <div class="field">
+        <label for="f-seat">座席番号</label>
+        <input type="text" id="f-seat" placeholder="例：H-14">
+      </div>
+      <div class="field">
+        <label>ムビチケ</label>
+        <div class="toggle-row" id="mubiToggle">
+          <button type="button" data-mubi="1">利用</button>
+          <button type="button" data-mubi="0" class="on">非利用</button>
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label for="f-price">料金 <span class="opt">任意</span></label>
+          <input type="text" id="f-price" inputmode="numeric" placeholder="例：2000">
+        </div>
+        <div class="field">
+          <label for="f-resno">予約番号 <span class="opt">任意</span></label>
+          <input type="text" id="f-resno" placeholder="例：A12345">
+        </div>
+      </div>
+      <div class="field">
+        <label for="f-memo">メモ <span class="opt">任意</span></label>
+        <textarea id="f-memo" placeholder="一緒に行く人、支払い方法など"></textarea>
+      </div>
+      <div class="form-err" id="formErr"></div>
+      <button type="submit" class="save-btn" id="saveBtn">保存する</button>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------- storage (localStorage with in-memory fallback) ---------- */
+const KEY = "mycinema.tickets.v1";
+const THEME_KEY = "mycinema.theme.v1";
+const SENDERS_KEY = "mycinema.senders.v1";
+const DEFAULT_RUNTIME = 120; // minutes, used when runtime is unknown
+
+let _mem = {};
+const store = {
+  get(k){ try{ return localStorage.getItem(k); }catch(e){ return (k in _mem)?_mem[k]:null; } },
+  set(k,v){ try{ localStorage.setItem(k,v); }catch(e){ _mem[k]=v; } }
+};
+
+function load(){ try{ return JSON.parse(store.get(KEY)) || []; }catch(e){ return []; } }
+function save(){ store.set(KEY, JSON.stringify(tickets)); }
+
+let tickets = load();
+let editingId = null;
+let mubiState = 0;
+let voiceState = 0;
+
+/* ---------- theme ---------- */
+let currentTheme = store.get(THEME_KEY) || "navy";
+document.documentElement.setAttribute("data-theme", currentTheme);
+function applyTheme(name){
+  currentTheme = name;
+  document.documentElement.setAttribute("data-theme", name);
+  store.set(THEME_KEY, name);
+  document.querySelectorAll("#themeOpts button").forEach(b=>b.classList.toggle("active", b.dataset.theme===name));
+}
+
+/* ---------- sender addresses ---------- */
+function loadSenders(){
+  try{ const a = JSON.parse(store.get(SENDERS_KEY)); return (Array.isArray(a) && a.length) ? a : [""]; }
+  catch(e){ return [""]; }
+}
+let senders = loadSenders();
+function saveSenders(){ store.set(SENDERS_KEY, JSON.stringify(senders.map(s=>s.trim()).filter(Boolean))); }
+function renderSenders(){
+  const box = document.getElementById("senderList");
+  box.innerHTML = "";
+  senders.forEach((val,i)=>{
+    const row = document.createElement("div");
+    row.className = "sender-row";
+    const inp = document.createElement("input");
+    inp.type = "email"; inp.inputMode = "email"; inp.value = val;
+    inp.placeholder = "example@theater-ticket.co.jp";
+    inp.oninput = ()=>{ senders[i] = inp.value; saveSenders(); };
+    const rm = document.createElement("button");
+    rm.type = "button"; rm.className = "sender-rm"; rm.textContent = "×"; rm.setAttribute("aria-label","削除");
+    rm.onclick = ()=>{ senders.splice(i,1); if(!senders.length) senders = [""]; saveSenders(); renderSenders(); };
+    row.appendChild(inp); row.appendChild(rm); box.appendChild(row);
+  });
+}
+
+/* ---------- helpers ---------- */
+const $ = id => document.getElementById(id);
+const DOW = ["日","月","火","水","木","金","土"];
+
+function toHalf(s){
+  return s.replace(/[Ａ-Ｚａ-ｚ０-９]/g, c => String.fromCharCode(c.charCodeAt(0)-0xFEE0))
+          .replace(/[：]/g,":").replace(/[／]/g,"/").replace(/[－―ー]/g,"-").replace(/　/g," ");
+}
+function fmtBadgeClass(f){
+  const s = (f||"").toUpperCase();
+  if(s.includes("IMAX")) return "fmt-imax";
+  if(s.includes("4DX")||s.includes("MX4D")) return "fmt-4dx";
+  if(s.includes("DOLBY")) return "fmt-dolby";
+  if(s.includes("SCREENX")) return "fmt-screenx";
+  if(s.includes("3D")) return "fmt-3d";
+  if(s==="2D") return "fmt-2d";
+  if(s) return "fmt-special";
+  return "";
+}
+function esc(s){ return (s||"").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+/* ---------- status classification ---------- */
+function classify(t, now){
+  if(!t.date) return {sec:"upcoming", status:null, sortStart:Infinity};
+  const start = t.time ? new Date(t.date + "T" + t.time) : null;
+  const dateOnly = new Date(t.date + "T00:00");
+
+  // determine end: explicit 終了時刻 wins, else start + runtime
+  let end = null;
+  if(t.endtime){
+    end = new Date(t.date + "T" + t.endtime);
+    if(start && end <= start) end = new Date(end.getTime() + 86400000); // crosses midnight
+  }else if(start){
+    const runtime = parseInt(t.runtime,10) || DEFAULT_RUNTIME;
+    end = new Date(start.getTime() + runtime*60000);
+  }
+
+  if(!start){
+    const boundary = end || new Date(t.date + "T23:59");
+    if(now > boundary) return {sec:"done", status:"鑑賞済み", sortStart:dateOnly.getTime()};
+    return {sec:"upcoming", status:null, sortStart:dateOnly.getTime()};
+  }
+  if(now < start) return {sec:"upcoming", status:null, sortStart:start.getTime()};
+  if(end && now < end) return {sec:"now", status:"鑑賞中", sortStart:start.getTime()};
+  return {sec:"done", status:"鑑賞済み", sortStart:start.getTime()};
+}
+
+// end time to show on a card (explicit 終了時刻, else start + 上映時間); null if unknown
+function endDisplay(t){
+  if(!t.date || !t.time) return null;
+  const start = new Date(t.date + "T" + t.time);
+  let end = null;
+  if(t.endtime){
+    end = new Date(t.date + "T" + t.endtime);
+    if(end <= start) end = new Date(end.getTime() + 86400000);
+  }else if(t.runtime){
+    const rt = parseInt(t.runtime,10);
+    if(rt>0) end = new Date(start.getTime() + rt*60000);
+  }
+  if(!end) return null;
+  const hh = String(end.getHours()).padStart(2,"0");
+  const mm = String(end.getMinutes()).padStart(2,"0");
+  const endDate = `${end.getFullYear()}-${String(end.getMonth()+1).padStart(2,"0")}-${String(end.getDate()).padStart(2,"0")}`;
+  return {hhmm:`${hh}:${mm}`, nextDay: endDate!==t.date};
+}
+
+/* ---------- render ---------- */
+function render(){
+  const now = new Date();
+  const cls = tickets.map(t=>({t, c:classify(t, now)}));
+  const nowArr  = cls.filter(x=>x.c.sec==="now").sort((a,b)=>a.c.sortStart-b.c.sortStart);
+  const upArr   = cls.filter(x=>x.c.sec==="upcoming").sort((a,b)=>a.c.sortStart-b.c.sortStart);
+  const doneArr = cls.filter(x=>x.c.sec==="done").sort((a,b)=>b.c.sortStart-a.c.sortStart);
+
+  if(tickets.length){
+    const parts = [];
+    if(nowArr.length) parts.push(`鑑賞中 <b>${nowArr.length}</b>`);
+    parts.push(`これから <b>${upArr.length}</b>`);
+    parts.push(`全 <b>${tickets.length}</b>`);
+    $("tally").innerHTML = parts.join(" ／ ");
+  }else{
+    $("tally").innerHTML = "";
+  }
+
+  const list = $("list");
+  if(tickets.length === 0){
+    list.innerHTML = `<div class="empty">
+      <div class="big">🎬</div>
+      <p>まだチケットがありません。</p>
+      <p>「＋ チケットを追加」から、手入力で登録するか<br>予約メールを貼り付けて追加できます。</p>
+    </div>`;
+    return;
+  }
+
+  let html = "";
+  if(nowArr.length){
+    html += `<div class="section"><div class="section-head now"><h2>鑑賞中</h2><span class="count">${nowArr.length}</span></div>`;
+    nowArr.forEach(x=> html += card(x.t, {isPast:false, status:x.c.status, isNext:false}));
+    html += `</div>`;
+  }
+  if(upArr.length){
+    html += `<div class="section"><div class="section-head"><h2>これから見る</h2><span class="count">${upArr.length}</span></div>`;
+    upArr.forEach((x,i)=> html += card(x.t, {isPast:false, status:null, isNext:i===0 && !!x.t.date}));
+    html += `</div>`;
+  }
+  if(doneArr.length){
+    html += `<div class="section"><div class="section-head past"><h2>鑑賞済み</h2><span class="count">${doneArr.length}</span></div>`;
+    doneArr.forEach(x=> html += card(x.t, {isPast:true, status:x.c.status, isNext:false}));
+    html += `</div>`;
+  }
+  list.innerHTML = html;
+
+  list.querySelectorAll("[data-edit]").forEach(b=> b.onclick = ()=> openEdit(b.dataset.edit));
+  list.querySelectorAll("[data-del]").forEach(b=> b.onclick = ()=> del(b.dataset.del));
+}
+
+function card(t, opts){
+  const isPast = opts.isPast, status = opts.status, isNext = opts.isNext;
+  let md = "日付未定", dow = "";
+  if(t.date){
+    const d = new Date(t.date + "T00:00");
+    md = `${d.getMonth()+1}/${d.getDate()}`;
+    dow = `(${DOW[d.getDay()]})`;
+  }
+  const timeHtml = t.time ? `<div class="time">${esc(t.time)}</div>` : `<div class="time none">時刻未定</div>`;
+  const ed = endDisplay(t);
+  const endHtml = ed ? `<div class="endtime">〜${ed.nextDay?"翌":""}${ed.hhmm}</div>` : "";
+  const fmtHtml = t.format ? `<span class="badge ${fmtBadgeClass(t.format)}">${esc(t.format)}</span>` : "";
+  const voiceHtml = t.voice ? `<span class="badge voice">発声可能上映</span>` : "";
+  const screenHtml = t.screen ? `<span class="screen-tag">${esc(t.screen)}</span>` : "";
+
+  let statusHtml = "";
+  if(status==="鑑賞中") statusHtml = `<span class="stat now"><span class="dot"></span>鑑賞中</span>`;
+  else if(status==="鑑賞済み") statusHtml = `<span class="stat done">鑑賞済み</span>`;
+  else if(isNext) statusHtml = `<span class="stat next"><span class="dot"></span>次に見る</span>`;
+  const metaHtml = (fmtHtml||voiceHtml||screenHtml||statusHtml)
+    ? `<div class="meta-row">${fmtHtml}${voiceHtml}${screenHtml}${statusHtml}</div>` : "";
+
+  const seatHtml = t.seat
+    ? `<span class="seat"><span class="seat-lbl">座席</span><span class="seat-val">${esc(t.seat)}</span></span>`
+    : `<span class="seat"><span class="seat-lbl">座席</span><span class="seat-val none">未設定</span></span>`;
+  const mubiHtml = t.mubichike ? `<span class="mubi">ムビチケ利用</span>` : `<span class="mubi off">ムビチケ非利用</span>`;
+  const priceHtml = t.price ? `<span class="price">¥${esc(String(t.price))}</span>` : "";
+
+  const subBits = [];
+  if(t.resno) subBits.push(`予約番号 ${esc(t.resno)}`);
+  if(t.memo) subBits.push(`📝 ${esc(t.memo)}`);
+  const subHtml = subBits.length ? `<div class="sub">${subBits.join(" ／ ")}</div>` : "";
+
+  const cls = "ticket" + (status==="鑑賞中" ? " now" : "") + (isPast ? " past" : "");
+
+  return `<div class="${cls}" data-id="${t.id}">
+    <div class="ticket-body">
+      <div class="when">
+        <div class="md">${md}</div>
+        <div class="dow">${dow}</div>
+        ${timeHtml}
+        ${endHtml}
+      </div>
+      <div class="info">
+        <div class="title">${esc(t.title) || "（無題）"}</div>
+        ${t.theater ? `<div class="theater">${esc(t.theater)}</div>` : ""}
+        ${metaHtml}
+        <div class="details">${seatHtml}${mubiHtml}${priceHtml}</div>
+        ${subHtml}
+      </div>
+    </div>
+    <div class="card-actions">
+      <button data-edit="${t.id}">編集</button>
+      <button class="del" data-del="${t.id}">削除</button>
+    </div>
+  </div>`;
+}
+
+/* ---------- parser (best-effort) ---------- */
+const CHAIN_DOMAINS = {
+  "tohotheater.jp":"TOHOシネマズ",
+  "aeoncinema.com":"イオンシネマ",
+  "109cinemas.net":"109シネマズ",
+  "unitedcinemas.jp":"ユナイテッド・シネマ",
+  "smt-cinema.com":"MOVIX",
+  "tjoy.jp":"T・ジョイ"
+};
+
+function detectFormat(norm){
+  if(/ULTRA\s*4DX/i.test(norm)) return "ULTRA 4DX";
+  const lz = norm.match(/LIVE\s*ZOUND(?:\s*Ver\.?\s*[\d.]+)?/i);
+  if(lz) return lz[0].replace(/\s+/g," ").trim();
+  if(/極音\s*Atmos/i.test(norm)) return "【極音Atmos】";
+  const goku = norm.match(/【\s*極音[^】]*】/);
+  if(goku) return goku[0].replace(/\s+/g,"");
+  const order = [
+    [/IMAX\s*(?:レーザー|WITH\s*LASER)/i,"IMAXレーザー"],
+    [/IMAX/i,"IMAX"],
+    [/4DX\s*3D|4DX3D/i,"4DX3D"],
+    [/4DX/i,"4DX"],
+    [/MX4D/i,"MX4D"],
+    [/DOLBY\s*CINEMA|ドルビーシネマ/i,"Dolby Cinema"],
+    [/DOLBY\s*ATMOS|ドルビーアトモス/i,"Dolby Atmos"],
+    [/SCREENX|スクリーンエックス/i,"ScreenX"],
+    [/BESTIA/i,"BESTIA"],
+    [/TCX/i,"TCX"],
+    [/\b3D\b|3D上映|3D字幕|3D吹替/i,"3D"],
+    [/\b2D\b|2D上映|2D字幕|2D吹替/i,"2D"]
+  ];
+  for(const [re,val] of order){ if(re.test(norm)) return val; }
+  return "";
+}
+
+function parseMail(raw){
+  const text = raw;
+  const norm = toHalf(raw);
+  const lines = raw.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+  const out = {};
+
+  // date
+  let m = norm.match(/(\d{4})\s*[年\/\.\-]\s*(\d{1,2})\s*[月\/\.\-]\s*(\d{1,2})/);
+  if(m){
+    out.date = `${m[1]}-${String(m[2]).padStart(2,"0")}-${String(m[3]).padStart(2,"0")}`;
+  }else{
+    m = norm.match(/(\d{1,2})\s*月\s*(\d{1,2})\s*日/);
+    if(m) out.date = `${new Date().getFullYear()}-${String(m[1]).padStart(2,"0")}-${String(m[2]).padStart(2,"0")}`;
+  }
+  // time
+  let tm = norm.match(/(?:上映|開始|開映|開演|回)\D{0,6}(\d{1,2}):(\d{2})/);
+  if(!tm) tm = norm.match(/(\d{1,2}):(\d{2})/);
+  if(tm){ const h = Math.min(23, +tm[1]); out.time = `${String(h).padStart(2,"0")}:${tm[2]}`; }
+
+  // runtime
+  let rt = norm.match(/(?:上映時間|本編時間|本編|上映尺|尺)\D{0,4}(\d{2,3})\s*分/);
+  if(rt) out.runtime = rt[1];
+
+  // end time (終了時刻 or a HH:MM〜HH:MM range)
+  let et = norm.match(/(?:終了|終演|上映終了|終了予定|終了時刻)\D{0,4}(\d{1,2}):(\d{2})/);
+  if(!et){
+    const rng = norm.match(/(\d{1,2}):(\d{2})\s*[〜～\-–—]\s*(\d{1,2}):(\d{2})/);
+    if(rng) et = [rng[0], rng[3], rng[4]];
+  }
+  if(et){ const h = Math.min(23, +et[1]); out.endtime = `${String(h).padStart(2,"0")}:${et[2]}`; }
+
+  // title
+  let tl = matchLabel(lines, /(?:作品名|作品|タイトル|映画|鑑賞作品|ご鑑賞作品|上映作品|プログラム名?)/);
+  if(tl) out.title = clean(tl);
+
+  // theater
+  const chains = ["TOHOシネマズ","TOHO CINEMAS","イオンシネマ","109シネマズ","ユナイテッド・シネマ","ユナイテッドシネマ","シネプレックス","MOVIX","T・ジョイ","Tジョイ","kino cinéma","キノシネマ","グランドシネマサンシャイン","バルト9","シネマサンシャイン","コロナワールド","ムービル","フォーラム","チネチッタ","kino"];
+  let th = matchLabel(lines, /(?:上映劇場|ご利用劇場|鑑賞劇場|劇場名|劇場|映画館名|映画館|シアター名)/);
+  if(!th){
+    for(const c of chains){ const line = lines.find(l => l.includes(c)); if(line){ th = line; break; } }
+  }
+  if(th) out.theater = clean(th);
+
+  // theater fallback via sender email domain
+  if(!out.theater){
+    const emails = norm.match(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g) || [];
+    for(const e of emails){
+      const dom = e.split("@")[1].toLowerCase();
+      for(const key in CHAIN_DOMAINS){
+        if(dom===key || dom.endsWith("."+key)){ out.theater = CHAIN_DOMAINS[key]; break; }
+      }
+      if(out.theater) break;
+    }
+  }
+
+  // screen
+  let sc = norm.match(/(?:スクリーン|SCREEN)\s*[:#]?\s*(\d{1,2}[A-Za-z]?)/i);
+  if(sc) out.screen = "スクリーン" + sc[1];
+
+  // seat
+  let seat = matchLabel(lines, /(?:座席番号|ご予約座席|お座席|座席|シート番号|シート|SEAT)/i);
+  if(seat) seat = clean(seat);
+  if(!seat){
+    const norm2 = toHalf(raw);
+    const found = norm2.match(/[A-Za-z]{1,2}\s*-\s*\d{1,3}|[A-Za-z]{1,2}\d{1,3}番?|\d{1,2}列\s*\d{1,3}番?/g);
+    if(found) seat = found.slice(0,6).map(s=>s.replace(/\s+/g,"")).join(", ");
+  }
+  if(seat) out.seat = seat;
+
+  // format
+  const f = detectFormat(norm);
+  if(f) out.format = f;
+
+  // screening type (発声可能 / 通常)
+  out.voice = /発声可能|発声上映|応援上映|絶叫上映|声出し可|声出しOK/i.test(norm);
+
+  // mubichike
+  out.mubichike = /ムビチケ/.test(text);
+
+  // price
+  let pr = norm.match(/(?:合計|お支払い金額|ご請求金額|料金|金額)\D{0,4}[¥￥]?\s*([0-9,]+)\s*円?/);
+  if(pr) out.price = pr[1].replace(/,/g,"");
+
+  // reservation number
+  let rn = norm.match(/(?:予約番号|受付番号|購入番号|チケット番号|認証番号)\s*[:：]?\s*([A-Za-z0-9\-]{3,})/);
+  if(rn) out.resno = rn[1];
+
+  return out;
+}
+function matchLabel(lines, labelRe){
+  for(const line of lines){
+    const m = line.match(new RegExp("^\\s*(?:[■●▼・]\\s*)?(?:" + labelRe.source + ")\\s*[:：]\\s*(.+)$", labelRe.flags));
+    if(m && m[1].trim()) return m[1].trim();
+  }
+  return null;
+}
+function clean(s){ return s.replace(/[『』「」【】\[\]]/g,"").replace(/\s{2,}/g," ").trim(); }
+
+/* ---------- panel control ---------- */
+function openAdd(){
+  editingId = null;
+  $("panelTitle").textContent = "チケットを追加";
+  clearForm();
+  setTab("manual");
+  $("overlay").classList.add("open");
+}
+function openEdit(id){
+  const t = tickets.find(x=>x.id===id);
+  if(!t) return;
+  editingId = id;
+  $("panelTitle").textContent = "チケットを編集";
+  clearForm();
+  fillForm(t);
+  setTab("manual");
+  $("overlay").classList.add("open");
+}
+function closeAdd(){ $("overlay").classList.remove("open"); }
+
+function setTab(tab){
+  document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("active", b.dataset.tab===tab));
+  $("mailBox").style.display = tab==="mail" ? "block" : "none";
+}
+
+function clearForm(){
+  ["f-title","f-date","f-time","f-endtime","f-runtime","f-theater","f-screen","f-seat","f-price","f-resno","f-memo","f-format-other","mailInput"].forEach(i=>$(i).value="");
+  $("f-format").value="";
+  $("fmtOtherWrap").style.display="none";
+  setMubi(0);
+  setVoice(0);
+  $("readNote").className="read-note";
+  $("readNote").textContent="";
+  $("formErr").className="form-err";
+}
+function fillForm(t){
+  $("f-title").value = t.title||"";
+  $("f-date").value = t.date||"";
+  $("f-time").value = t.time||"";
+  $("f-endtime").value = t.endtime||"";
+  $("f-runtime").value = t.runtime||"";
+  $("f-theater").value = t.theater||"";
+  $("f-screen").value = t.screen||"";
+  $("f-seat").value = t.seat||"";
+  $("f-price").value = t.price||"";
+  $("f-resno").value = t.resno||"";
+  $("f-memo").value = t.memo||"";
+  setMubi(t.mubichike?1:0);
+  setVoice(t.voice?1:0);
+  setFormatSelect(t.format||"");
+}
+function setFormatSelect(val){
+  const sel = $("f-format");
+  const opts = [...sel.options].map(o=>o.value);
+  if(val && opts.includes(val)){ sel.value = val; $("fmtOtherWrap").style.display="none"; }
+  else if(val){ sel.value = "__other"; $("fmtOtherWrap").style.display="block"; $("f-format-other").value = val; }
+  else{ sel.value = ""; $("fmtOtherWrap").style.display="none"; }
+}
+function setMubi(v){
+  mubiState = v;
+  document.querySelectorAll("#mubiToggle button").forEach(b=>b.classList.toggle("on", +b.dataset.mubi===v));
+}
+function setVoice(v){
+  voiceState = v;
+  document.querySelectorAll("#voiceToggle button").forEach(b=>b.classList.toggle("on", +b.dataset.voice===v));
+}
+
+/* ---------- events ---------- */
+$("openAdd").onclick = openAdd;
+$("closeAdd").onclick = closeAdd;
+$("overlay").onclick = e => { if(e.target === $("overlay")) closeAdd(); };
+document.querySelectorAll("#tabs button").forEach(b=> b.onclick = ()=> setTab(b.dataset.tab));
+document.querySelectorAll("#mubiToggle button").forEach(b=> b.onclick = ()=> setMubi(+b.dataset.mubi));
+document.querySelectorAll("#voiceToggle button").forEach(b=> b.onclick = ()=> setVoice(+b.dataset.voice));
+$("f-format").onchange = e => $("fmtOtherWrap").style.display = e.target.value==="__other" ? "block":"none";
+
+// menu
+$("menuBtn").onclick = ()=> $("menuOverlay").classList.add("open");
+$("menuClose").onclick = ()=> $("menuOverlay").classList.remove("open");
+$("menuOverlay").onclick = e => { if(e.target === $("menuOverlay")) $("menuOverlay").classList.remove("open"); };
+document.querySelectorAll("#themeOpts button").forEach(b=> b.onclick = ()=> applyTheme(b.dataset.theme));
+$("addSender").onclick = ()=>{
+  senders.push("");
+  renderSenders();
+  const inputs = $("senderList").querySelectorAll("input");
+  if(inputs.length) inputs[inputs.length-1].focus();
+};
+
+document.addEventListener("keydown", e=>{
+  if(e.key === "Escape"){
+    $("overlay").classList.remove("open");
+    $("menuOverlay").classList.remove("open");
+  }
+});
+
+$("readBtn").onclick = ()=>{
+  const raw = $("mailInput").value.trim();
+  const note = $("readNote");
+  if(!raw){
+    note.className="read-note show";
+    note.textContent="メール本文を貼り付けてから「読み取る」を押してください。";
+    return;
+  }
+  const r = parseMail(raw);
+  let got = 0;
+  if(r.title){ $("f-title").value=r.title; got++; }
+  if(r.date){ $("f-date").value=r.date; got++; }
+  if(r.time){ $("f-time").value=r.time; got++; }
+  if(r.endtime){ $("f-endtime").value=r.endtime; got++; }
+  if(r.runtime){ $("f-runtime").value=r.runtime; got++; }
+  if(r.theater){ $("f-theater").value=r.theater; got++; }
+  if(r.screen){ $("f-screen").value=r.screen; got++; }
+  if(r.seat){ $("f-seat").value=r.seat; got++; }
+  if(r.format){ setFormatSelect(r.format); got++; }
+  if(r.price){ $("f-price").value=r.price; got++; }
+  if(r.resno){ $("f-resno").value=r.resno; got++; }
+  setMubi(r.mubichike?1:0);
+  setVoice(r.voice?1:0);
+
+  setTab("manual");
+  note.className = got ? "read-note show ok" : "read-note show";
+  note.textContent = got
+    ? `${got} 項目を読み取りました。内容を確認・修正して保存してください。`
+    : "自動で読み取れませんでした。下のフォームに手入力してください。";
+};
+
+$("sampleBtn").onclick = ()=>{
+  $("mailInput").value =
+`【予約完了のお知らせ】TOHOシネマズ
+From: reserve@tohotheater.jp
+
+この度はご予約いただきありがとうございます。
+
+作品名：オーロラの向こう側
+劇場：TOHOシネマズ 六本木ヒルズ
+上映日時：2026年10月3日(土) 18:45の回
+上映時間：132分
+上映方式：IMAXレーザー／字幕
+上映区分：応援上映
+スクリーン：SCREEN 7
+座席番号：H-14, H-15
+ムビチケでのご購入ありがとうございます。
+予約番号：TH-882041
+お支払い金額：¥3,600
+
+上映開始15分前までにお越しください。`;
+};
+
+$("form").onsubmit = e =>{
+  e.preventDefault();
+  const title = $("f-title").value.trim();
+  const date = $("f-date").value;
+  const err = $("formErr");
+  if(!title && !date){
+    err.className="form-err show";
+    err.textContent="タイトルか上映日のどちらかは入力してください。";
+    return;
+  }
+  let format = $("f-format").value;
+  if(format==="__other") format = $("f-format-other").value.trim();
+  if(format==="") format = "";
+
+  const data = {
+    title, date,
+    time: $("f-time").value,
+    endtime: $("f-endtime").value,
+    runtime: $("f-runtime").value.replace(/[^\d]/g,""),
+    theater: $("f-theater").value.trim(),
+    screen: $("f-screen").value.trim(),
+    seat: $("f-seat").value.trim(),
+    format,
+    mubichike: mubiState===1,
+    voice: voiceState===1,
+    price: $("f-price").value.replace(/[^\d]/g,""),
+    resno: $("f-resno").value.trim(),
+    memo: $("f-memo").value.trim()
+  };
+
+  if(editingId){
+    const idx = tickets.findIndex(t=>t.id===editingId);
+    tickets[idx] = {...tickets[idx], ...data};
+    toast("チケットを更新しました");
+  }else{
+    data.id = Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+    data.createdAt = Date.now();
+    tickets.push(data);
+    toast("チケットを追加しました");
+  }
+  save(); render(); closeAdd();
+};
+
+function del(id){
+  const t = tickets.find(x=>x.id===id);
+  const name = t && t.title ? `「${t.title}」` : "このチケット";
+  if(!confirm(name + " を削除しますか？")) return;
+  tickets = tickets.filter(x=>x.id!==id);
+  save(); render();
+  toast("削除しました");
+}
+
+let toastTimer;
+function toast(msg){
+  const el = $("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> el.classList.remove("show"), 2200);
+}
+
+/* ---------- init ---------- */
+renderSenders();
+document.querySelectorAll("#themeOpts button").forEach(b=>b.classList.toggle("active", b.dataset.theme===currentTheme));
+
+/* long-press (or right-click) to reveal 編集 / 削除 */
+(function setupLongPress(){
+  const listEl = $("list");
+  let timer=null, fired=false, sx=0, sy=0;
+  const clear = ()=>{ clearTimeout(timer); timer=null; };
+  const hideAll = ()=> listEl.querySelectorAll(".ticket.show-actions").forEach(t=>t.classList.remove("show-actions"));
+  const reveal = el=>{ hideAll(); el.classList.add("show-actions"); };
+
+  listEl.addEventListener("touchstart", e=>{
+    const t = e.target.closest(".ticket");
+    if(!t) return;
+    fired=false;
+    sx=e.touches[0].clientX; sy=e.touches[0].clientY;
+    clear();
+    timer=setTimeout(()=>{ fired=true; reveal(t); try{ navigator.vibrate && navigator.vibrate(15); }catch(_){} }, 500);
+  }, {passive:true});
+  listEl.addEventListener("touchmove", e=>{
+    if(!timer) return;
+    if(Math.abs(e.touches[0].clientX-sx)>10 || Math.abs(e.touches[0].clientY-sy)>10) clear();
+  }, {passive:true});
+  listEl.addEventListener("touchend", clear);
+  listEl.addEventListener("touchcancel", clear);
+
+  listEl.addEventListener("contextmenu", e=>{
+    const t = e.target.closest(".ticket");
+    if(!t) return;
+    e.preventDefault();
+    reveal(t);
+  });
+
+  document.addEventListener("click", e=>{
+    if(fired){ fired=false; e.preventDefault(); e.stopPropagation(); return; }
+    if(e.target.closest(".card-actions")) return; // let 編集 / 削除 work
+    hideAll();
+  }, true);
+})();
+
+render();
+// keep 鑑賞中 / 鑑賞済み labels fresh while open
+setInterval(render, 60000);
+document.addEventListener("visibilitychange", ()=>{ if(!document.hidden) render(); });
+</script>
+</body>
+</html>
