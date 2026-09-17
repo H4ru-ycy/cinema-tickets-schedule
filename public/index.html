@@ -354,7 +354,6 @@
       <button class="add-sender" id="addSender" type="button">＋ アドレスを追加</button>
     </div>
 
-    <a class="drawer-github" id="drawerGithub" href="#" target="_blank" rel="noopener" style="display:none;">&lt;/&gt; ソースコード（GitHub）</a>
     <div class="drawer-version" id="drawerVersion"></div>
   </nav>
 </div>
@@ -1120,10 +1119,8 @@ function refreshHistory(){ if($("historyOverlay").classList.contains("open")){ p
 
 /* GitHub / contact links from config */
 (function setupLinks(){
-  if(GITHUB_URL){ const g = $("drawerGithub"); g.href = GITHUB_URL; g.style.display = "block"; }
   let html = "";
   if(CONTACT_EMAIL) html += `<a class="contact-btn" href="mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent("シネマチケットメモ お問い合わせ")}">メールで問い合わせる</a>`;
-  if(GITHUB_URL) html += `<a class="contact-link" href="${GITHUB_URL}/issues" target="_blank" rel="noopener">GitHub で報告する</a>`;
   $("contactLinks").innerHTML = html;
   if(!html) $("contactEmpty").style.display = "block";
 })();
