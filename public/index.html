@@ -227,6 +227,8 @@
   .field input,.field select,.field textarea{width:100%;background:var(--panel-2);border:1px solid var(--panel-line);border-radius:10px;color:var(--panel-ink);font-family:inherit;font-size:15px;padding:11px 12px;}
   .field textarea{min-height:56px;resize:vertical;}
   .field-hint{font-size:11.5px;color:var(--panel-ink-soft);margin-top:5px;}
+  .field-hint.warn{color:var(--red);}
+  .details .notify-tag{color:var(--gold-deep);font-weight:600;}
   .row2{display:flex;gap:10px;}
   .row2 .field{flex:1;}
   .toggle-row{display:flex;background:var(--panel-2);border:1px solid var(--panel-line);border-radius:10px;overflow:hidden;}
@@ -478,6 +480,28 @@
           <button type="button" data-mubi="0" class="on">非利用</button>
         </div>
       </div>
+      <div class="field">
+        <label>通知</label>
+        <div class="toggle-row" id="notifyToggle">
+          <button type="button" data-notify="1">ON</button>
+          <button type="button" data-notify="0" class="on">OFF</button>
+        </div>
+      </div>
+      <div class="field" id="notifyTimeWrap" style="display:none;">
+        <label for="f-notify-offset">通知タイミング</label>
+        <select id="f-notify-offset">
+          <option value="1440">1日前</option>
+          <option value="day">上映当日（朝9:00）</option>
+          <option value="180">3時間前</option>
+          <option value="60">1時間前</option>
+          <option value="30" selected>30分前</option>
+          <option value="15">15分前</option>
+          <option value="10">10分前</option>
+          <option value="5">5分前</option>
+          <option value="3">3分前</option>
+        </select>
+        <div class="field-hint" id="notifyHint">通知はアプリ（ページ）を開いている間に届きます。完全に閉じていると届かない場合があります。</div>
+      </div>
       <div class="row2">
         <div class="field">
           <label for="f-price">料金 <span class="opt">任意</span></label>
@@ -537,8 +561,10 @@
       <p>「発声可能上映／通常上映」と「ムビチケ利用／非利用」を選べます。発声可能上映のチケットにはピンクのバッジが付きます。</p>
       <h4>鑑賞中・鑑賞履歴</h4>
       <p>開始時刻を過ぎると「鑑賞中」になり、終了時刻（または上映時間から計算した終了時刻）を過ぎると、自動的にトップ画面から「鑑賞履歴」へ移動します。鑑賞履歴は検索・並び替え・フォーマット・年月で絞り込めます。</p>
-      <h4>編集・削除</h4>
-      <p>カードを長押し（パソコンでは右クリック）すると、編集・削除ボタンが表示されます。</p>
+      <h4>編集・削除・カレンダー</h4>
+      <p>カードを長押し（パソコンでは右クリック）すると、編集・カレンダー・削除ボタンが表示されます。「カレンダー」を押すと、選んだ通知タイミングのアラーム付きで端末のカレンダーに予定を追加できます（上映日と開始時刻が必要）。</p>
+      <h4>通知</h4>
+      <p>上映情報の入力で通知をONにし、タイミング（1日前〜上映3分前）を選べます。ブラウザ通知はアプリ（ページ）を開いている間に届きます。完全に閉じていると届かないことがあり、iPhoneのSafariでは動作しないことが多いため、確実に知らせたいときは「カレンダー」への追加がおすすめです。</p>
       <h4>表示モード</h4>
       <p>メニューからホワイト・ネイビー・ブラックを切り替えられます。</p>
       <h4>データの保存について</h4>
@@ -587,8 +613,10 @@ const GITHUB_URL = "https://github.com/H4ru-ycy/cinema-tickets-schedule";    // 
 const CONTACT_EMAIL = "h4ru.kyi2943@gmail.com"; // 例: "you@example.com"
 
 /* ===== version history (newest first) ===== */
-const APP_VERSION = "1.5.0";
+const APP_VERSION = "1.7.0";
 const CHANGELOG = [
+  { v:"1.7.0", date:"2026-09-17", items:["「カレンダーに追加」を追加：選んだ通知タイミングのアラーム付きで端末のカレンダーに登録可能（閉じていても・iPhoneでも確実に通知）","カードの長押しメニューにカレンダーボタンを追加"] },
+  { v:"1.6.0", date:"2026-09-17", items:["通知機能を追加：上映情報に通知ON/OFFと通知タイミング（1日前〜上映3分前の9段階）を設定可能","登録済みのチケットも編集で通知を設定可能","※ 通知はページを開いている間に届きます（端末やブラウザにより届かない場合あり）"] },
   { v:"1.5.0", date:"2026-09-16", items:["上映フォーマットを追加（ULTIRA、THX、Meta Sound など多数）","更新履歴を追加"] },
   { v:"1.4.0", date:"2026-09-16", items:["鑑賞履歴を追加：上映終了時刻を過ぎたチケットが自動で移動","鑑賞履歴を検索・並び替え・フォーマット・年月で絞り込み可能に","「使い方」「お問い合わせ」をメニューに追加","GitHubリンクを追加"] },
   { v:"1.3.0", date:"2026-09-16", items:["終了時刻の入力欄を追加","上映予定カードに終了時刻を表示","カードをシンプル・コンパクトなデザインに変更","カードを長押しで編集・削除を表示","ムビチケ表示を水平に修正"] },
@@ -610,6 +638,7 @@ let tickets = load();
 let editingId = null;
 let mubiState = 0;
 let voiceState = 0;
+let notifyState = 0;
 
 /* ---------- theme ---------- */
 let currentTheme = store.get(THEME_KEY) || "navy";
@@ -764,6 +793,68 @@ function render(){
 function attachCardHandlers(container){
   container.querySelectorAll("[data-edit]").forEach(b=> b.onclick = ()=> openEdit(b.dataset.edit));
   container.querySelectorAll("[data-del]").forEach(b=> b.onclick = ()=> del(b.dataset.del));
+  container.querySelectorAll("[data-cal]").forEach(b=> b.onclick = ()=> { const t = tickets.find(x=>x.id===b.dataset.cal); if(t) downloadICS(t); });
+}
+
+/* ---------- add to calendar (.ics with alarm) ---------- */
+function icsEsc(s){ return String(s).replace(/\\/g,"\\\\").replace(/;/g,"\\;").replace(/,/g,"\\,").replace(/\r?\n/g,"\\n"); }
+function icsStamp(d){
+  const p = n => String(n).padStart(2,"0");
+  return `${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}T${p(d.getHours())}${p(d.getMinutes())}00`;
+}
+function icsAlarmTrigger(t){
+  const key = t.notifyOffset || "30";
+  if(key === "day"){ return t.date ? ";VALUE=DATE-TIME:" + icsStamp(new Date(t.date+"T09:00")) : ":-PT30M"; }
+  const mins = parseInt(key,10);
+  if(isNaN(mins)) return ":-PT30M";
+  if(mins===0) return ":-PT0M";
+  if(mins%1440===0) return ":-P"+(mins/1440)+"D";
+  if(mins%60===0) return ":-PT"+(mins/60)+"H";
+  return ":-PT"+mins+"M";
+}
+function icsFor(t){
+  if(!t.date || !t.time) return null;
+  const start = new Date(t.date + "T" + t.time);
+  let end;
+  if(t.endtime){ end = new Date(t.date+"T"+t.endtime); if(end<=start) end = new Date(end.getTime()+86400000); }
+  else { const rt = parseInt(t.runtime,10)||DEFAULT_RUNTIME; end = new Date(start.getTime()+rt*60000); }
+  const summary = icsEsc(t.title || "上映予定");
+  const loc = icsEsc([t.theater, t.screen].filter(Boolean).join(" "));
+  const desc = [];
+  if(t.seat) desc.push("座席: "+t.seat);
+  if(t.format) desc.push("フォーマット: "+t.format);
+  if(t.voice) desc.push("発声可能上映");
+  desc.push("ムビチケ: " + (t.mubichike?"利用":"非利用"));
+  if(t.resno) desc.push("予約番号: "+t.resno);
+  const lines = [
+    "BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//cinema-memo//JP","CALSCALE:GREGORIAN",
+    "BEGIN:VEVENT",
+    "UID:"+((t.id||Math.random().toString(36).slice(2))+"@cinema-memo"),
+    "DTSTAMP:"+icsStamp(new Date()),
+    "DTSTART:"+icsStamp(start),
+    "DTEND:"+icsStamp(end),
+    "SUMMARY:"+summary
+  ];
+  if(loc) lines.push("LOCATION:"+loc);
+  if(desc.length) lines.push("DESCRIPTION:"+desc.map(icsEsc).join("\\n"));
+  lines.push("BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:"+summary,"TRIGGER"+icsAlarmTrigger(t),"END:VALARM");
+  lines.push("END:VEVENT","END:VCALENDAR");
+  return lines.join("\r\n");
+}
+function downloadICS(t){
+  const ics = icsFor(t);
+  if(!ics){ toast("上映日と開始時刻を入れるとカレンダーに追加できます"); return; }
+  try{
+    const blob = new Blob([ics], {type:"text/calendar;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = ((t.title||"cinema").replace(/[^\wぁ-んァ-ヶ一-龠ー]/g,"_").slice(0,40) || "cinema") + ".ics";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 1500);
+    toast("カレンダー用ファイルを作成しました");
+  }catch(e){ toast("作成に失敗しました"); }
 }
 
 function card(t, opts){
@@ -793,6 +884,7 @@ function card(t, opts){
     : `<span class="seat"><span class="seat-lbl">座席</span><span class="seat-val none">未設定</span></span>`;
   const mubiHtml = t.mubichike ? `<span class="mubi">ムビチケ利用</span>` : `<span class="mubi off">ムビチケ非利用</span>`;
   const priceHtml = t.price ? `<span class="price">¥${esc(String(t.price))}</span>` : "";
+  const notifyHtml = (t.notify && !isPast) ? `<span class="notify-tag">🔔 ${notifyLabel(t.notifyOffset)}</span>` : "";
 
   const subBits = [];
   if(t.resno) subBits.push(`予約番号 ${esc(t.resno)}`);
@@ -813,12 +905,13 @@ function card(t, opts){
         <div class="title">${esc(t.title) || "（無題）"}</div>
         ${t.theater ? `<div class="theater">${esc(t.theater)}</div>` : ""}
         ${metaHtml}
-        <div class="details">${seatHtml}${mubiHtml}${priceHtml}</div>
+        <div class="details">${seatHtml}${mubiHtml}${notifyHtml}${priceHtml}</div>
         ${subHtml}
       </div>
     </div>
     <div class="card-actions">
       <button data-edit="${t.id}">編集</button>
+      <button data-cal="${t.id}">カレンダー</button>
       <button class="del" data-del="${t.id}">削除</button>
     </div>
   </div>`;
@@ -988,6 +1081,8 @@ function clearForm(){
   $("fmtOtherWrap").style.display="none";
   setMubi(0);
   setVoice(0);
+  $("f-notify-offset").value = "30";
+  setNotify(0);
   $("readNote").className="read-note";
   $("readNote").textContent="";
   $("formErr").className="form-err";
@@ -1006,6 +1101,8 @@ function fillForm(t){
   $("f-memo").value = t.memo||"";
   setMubi(t.mubichike?1:0);
   setVoice(t.voice?1:0);
+  $("f-notify-offset").value = t.notifyOffset || "30";
+  setNotify(t.notify?1:0);
   setFormatSelect(t.format||"");
 }
 function setFormatSelect(val){
@@ -1023,6 +1120,66 @@ function setVoice(v){
   voiceState = v;
   document.querySelectorAll("#voiceToggle button").forEach(b=>b.classList.toggle("on", +b.dataset.voice===v));
 }
+function setNotify(v){
+  notifyState = v;
+  document.querySelectorAll("#notifyToggle button").forEach(b=>b.classList.toggle("on", +b.dataset.notify===v));
+  $("notifyTimeWrap").style.display = v ? "block" : "none";
+  if(v===1 && "Notification" in window && Notification.permission === "default"){
+    Notification.requestPermission().then(updateNotifyHint);
+  }
+  updateNotifyHint();
+}
+function updateNotifyHint(){
+  const hint = $("notifyHint");
+  if(!hint) return;
+  if(!("Notification" in window)){
+    hint.textContent = "お使いのブラウザは通知に対応していません（iPhoneのSafariなどでは動作しないことがあります）。";
+    hint.classList.add("warn");
+  }else if(Notification.permission === "denied"){
+    hint.textContent = "通知がブロックされています。ブラウザの設定で許可してください。";
+    hint.classList.add("warn");
+  }else{
+    hint.textContent = "通知はアプリ（ページ）を開いている間に届きます。完全に閉じていると届かない場合があります。";
+    hint.classList.remove("warn");
+  }
+}
+const NOTIFY_LABELS = {"1440":"1日前","day":"当日9:00","180":"3時間前","60":"1時間前","30":"30分前","15":"15分前","10":"10分前","5":"5分前","3":"3分前"};
+function notifyLabel(key){ return NOTIFY_LABELS[key] || "通知"; }
+function notifyTime(t){
+  if(!t.notify || !t.notifyOffset || !t.date) return null;
+  if(t.notifyOffset === "day") return new Date(t.date + "T09:00");
+  if(!t.time) return null; // 開始時刻がないと算出できない
+  const mins = parseInt(t.notifyOffset,10);
+  if(isNaN(mins)) return null;
+  return new Date(new Date(t.date + "T" + t.time).getTime() - mins*60000);
+}
+function fireNotification(t){
+  const d = t.date ? new Date(t.date + "T" + (t.time||"00:00")) : null;
+  const when = d ? `${d.getMonth()+1}/${d.getDate()}${t.time?(" "+t.time+"〜"):""}` : "";
+  const parts = [when, t.theater, t.seat && ("座席 "+t.seat)].filter(Boolean);
+  try{
+    const n = new Notification("🎬 " + (t.title || "上映予定"), { body: parts.join("  "), tag: "cinema-"+t.id });
+    n.onclick = ()=>{ try{ window.focus(); }catch(e){} n.close(); };
+  }catch(e){}
+}
+function checkNotifications(){
+  if(!("Notification" in window) || Notification.permission !== "granted") return;
+  const now = Date.now();
+  let changed = false;
+  tickets.forEach(t=>{
+    if(!t.notify) return;
+    const nt = notifyTime(t);
+    if(!nt) return;
+    const ntMs = nt.getTime();
+    const startMs = t.time ? new Date(t.date+"T"+t.time).getTime() : new Date(t.date+"T23:59").getTime();
+    if(now >= ntMs && now < startMs && t.notifiedTs !== ntMs){
+      fireNotification(t);
+      t.notifiedTs = ntMs;
+      changed = true;
+    }
+  });
+  if(changed) save();
+}
 
 /* ---------- events ---------- */
 $("openAdd").onclick = openAdd;
@@ -1031,6 +1188,7 @@ $("overlay").onclick = e => { if(e.target === $("overlay")) closeAdd(); };
 document.querySelectorAll("#tabs button").forEach(b=> b.onclick = ()=> setTab(b.dataset.tab));
 document.querySelectorAll("#mubiToggle button").forEach(b=> b.onclick = ()=> setMubi(+b.dataset.mubi));
 document.querySelectorAll("#voiceToggle button").forEach(b=> b.onclick = ()=> setVoice(+b.dataset.voice));
+document.querySelectorAll("#notifyToggle button").forEach(b=> b.onclick = ()=> setNotify(+b.dataset.notify));
 $("f-format").onchange = e => $("fmtOtherWrap").style.display = e.target.value==="__other" ? "block":"none";
 
 // menu
@@ -1209,6 +1367,8 @@ $("form").onsubmit = e =>{
     format,
     mubichike: mubiState===1,
     voice: voiceState===1,
+    notify: notifyState===1,
+    notifyOffset: $("f-notify-offset").value,
     price: $("f-price").value.replace(/[^\d]/g,""),
     resno: $("f-resno").value.trim(),
     memo: $("f-memo").value.trim()
@@ -1286,9 +1446,12 @@ document.querySelectorAll("#themeOpts button").forEach(b=>b.classList.toggle("ac
 })();
 
 render();
+updateNotifyHint();
+checkNotifications();
 // keep 鑑賞中 / 鑑賞済み labels fresh while open
 setInterval(render, 60000);
-document.addEventListener("visibilitychange", ()=>{ if(!document.hidden) render(); });
+setInterval(checkNotifications, 30000);
+document.addEventListener("visibilitychange", ()=>{ if(!document.hidden){ render(); checkNotifications(); } });
 </script>
 </body>
 </html>
