@@ -1,9 +1,8 @@
 {
-  // "name" は現在のURL「schedule.h4ru-kyi2943.workers.dev」の "schedule" と
-  // 必ず一致させること（変えるとURLが変わります）
-  "name": "schedule",
+  // Worker名。URL「cinema-tickets-schedule.h4ru-kyi2943.workers.dev」に対応します
+  "name": "cinema-tickets-schedule",
   "compatibility_date": "2026-09-16",
-  // 静的ファイル(index.html)を置くフォルダ。中身がそのまま配信されます
+  // index.html を置いているフォルダ。あなたのリポジトリは public の中に置く構成なので "./public"
   "assets": {
     "directory": "./public"
   }
