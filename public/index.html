@@ -116,6 +116,7 @@
   }
   .add-btn:hover{filter:brightness(1.05);}
   .add-btn:active{transform:translateY(1px);}
+  .add-note{margin:-16px 2px 24px;font-size:12.5px;line-height:1.5;color:var(--red);font-weight:600;text-align:center;}
 
   /* Sections */
   .section-head{display:flex;align-items:baseline;gap:9px;margin:8px 2px 14px;}
@@ -265,6 +266,37 @@
   .sender-rm:hover{color:var(--red);border-color:var(--red);}
   .add-sender{margin-top:4px;width:100%;padding:11px;background:none;border:1px dashed var(--panel-line);border-radius:9px;color:var(--gold);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;}
   .add-sender:hover{border-color:var(--gold);}
+  .drawer-nav{display:flex;align-items:center;gap:11px;width:100%;padding:13px 13px;background:var(--panel-2);border:1px solid var(--panel-line);border-radius:10px;font-family:inherit;font-size:15px;font-weight:700;color:var(--panel-ink);cursor:pointer;text-align:left;margin-bottom:8px;}
+  .drawer-nav:hover{border-color:var(--gold);}
+  .drawer-nav .nav-ico{font-size:16px;}
+  .drawer-github{display:block;text-align:center;padding:11px;border:1px dashed var(--panel-line);border-radius:9px;color:var(--panel-ink-soft);font-size:13px;font-weight:700;text-decoration:none;}
+  .drawer-github:hover{border-color:var(--gold);color:var(--gold);}
+
+  /* history filters */
+  .hist-filters{margin-bottom:14px;}
+  .hist-filters input[type="search"]{width:100%;background:var(--panel-2);border:1px solid var(--panel-line);border-radius:10px;color:var(--panel-ink);font-family:inherit;font-size:15px;padding:11px 12px;margin-bottom:9px;}
+  .hist-row{display:flex;gap:8px;flex-wrap:wrap;}
+  .hist-row select{flex:1;min-width:0;background:var(--panel-2);border:1px solid var(--panel-line);border-radius:10px;color:var(--panel-ink);font-family:inherit;font-size:13.5px;padding:10px 8px;}
+  .hist-count{margin-top:10px;font-size:12.5px;color:var(--panel-ink-soft);}
+  .hist-empty{text-align:center;padding:34px 16px;color:var(--panel-ink-soft);font-size:14px;}
+
+  /* doc panels (使い方 / お問い合わせ) */
+  .doc-body{color:var(--panel-ink);font-size:14px;line-height:1.7;}
+  .doc-body h4{margin:18px 0 5px;font-size:14.5px;font-weight:800;color:var(--gold);}
+  .doc-body h4:first-child{margin-top:0;}
+  .doc-body p{margin:0 0 4px;color:var(--panel-ink);}
+  .doc-body .contact-btn{display:block;text-align:center;margin-top:12px;padding:13px;background:var(--gold);color:#241c04;border-radius:11px;font-weight:800;text-decoration:none;}
+  .doc-body .contact-link{display:block;text-align:center;margin-top:10px;padding:12px;border:1px solid var(--panel-line);border-radius:10px;color:var(--panel-ink);font-weight:700;text-decoration:none;}
+  .doc-body .contact-link:hover{border-color:var(--gold);}
+  .contact-empty{color:var(--panel-ink-soft);}
+  .cl-entry{margin-bottom:18px;}
+  .cl-entry:last-child{margin-bottom:0;}
+  .cl-head{display:flex;align-items:baseline;gap:10px;margin-bottom:6px;}
+  .cl-ver{font-size:15px;font-weight:800;color:var(--gold);}
+  .cl-date{font-size:12px;color:var(--panel-ink-soft);font-variant-numeric:tabular-nums;}
+  .cl-list{margin:0;padding-left:18px;}
+  .cl-list li{font-size:13.5px;line-height:1.6;color:var(--panel-ink);margin-bottom:2px;}
+  .drawer-version{margin-top:12px;text-align:center;font-size:11.5px;color:var(--panel-ink-soft);}
 
   /* toast */
   .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);background:var(--panel-2);border:1px solid var(--panel-line);color:var(--panel-ink);padding:11px 18px;border-radius:11px;font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .25s ease, transform .25s ease;z-index:80;box-shadow:0 10px 30px -12px rgba(0,0,0,.7);}
@@ -285,6 +317,7 @@
   </header>
 
   <button class="add-btn" id="openAdd">＋ チケットを追加</button>
+  <p class="add-note">上映終了時刻を過ぎると、カードは自動的に「鑑賞履歴」へ移動します。</p>
 
   <div id="list"></div>
 </div>
@@ -295,6 +328,13 @@
     <div class="drawer-head">
       <h3>メニュー</h3>
       <button class="x-btn" id="menuClose" aria-label="閉じる">×</button>
+    </div>
+
+    <div class="drawer-sec">
+      <button class="drawer-nav" id="navHistory" type="button"><span class="nav-ico">🎞️</span>鑑賞履歴</button>
+      <button class="drawer-nav" id="navHelp" type="button"><span class="nav-ico">❓</span>使い方</button>
+      <button class="drawer-nav" id="navChangelog" type="button"><span class="nav-ico">🆕</span>更新履歴</button>
+      <button class="drawer-nav" id="navContact" type="button"><span class="nav-ico">✉️</span>お問い合わせ</button>
     </div>
 
     <div class="drawer-sec">
@@ -313,6 +353,9 @@
       <div id="senderList"></div>
       <button class="add-sender" id="addSender" type="button">＋ アドレスを追加</button>
     </div>
+
+    <a class="drawer-github" id="drawerGithub" href="#" target="_blank" rel="noopener" style="display:none;">&lt;/&gt; ソースコード（GitHub）</a>
+    <div class="drawer-version" id="drawerVersion"></div>
   </nav>
 </div>
 
@@ -391,6 +434,21 @@
             <option>LIVE ZOUND Ver.1.6.8</option>
             <option>(ｲﾍﾞﾝﾄ版) 【極音02】</option>
             <option>【極音Atmos】</option>
+            <option>ULTIRA</option>
+            <option>Christie Vive Audio</option>
+            <option>THX</option>
+            <option>DTS surround cinema</option>
+            <option>轟音</option>
+            <option>SAION</option>
+            <option>sola</option>
+            <option>極音02</option>
+            <option>LIVEサウンド</option>
+            <option>〈ライブ用〉スピーカー</option>
+            <option>エンドファイア･アレイ</option>
+            <option>重低音体感上映</option>
+            <option>重音</option>
+            <option>重震シアター</option>
+            <option>Meta Sound</option>
             <option value="__other">その他（自由入力）</option>
           </select>
         </div>
@@ -441,6 +499,81 @@
   </div>
 </div>
 
+<!-- 鑑賞履歴 -->
+<div class="overlay" id="historyOverlay">
+  <div class="panel">
+    <div class="panel-head">
+      <h3>鑑賞履歴</h3>
+      <button class="x-btn" id="historyClose" aria-label="閉じる">×</button>
+    </div>
+    <div class="hist-filters">
+      <input type="search" id="histSearch" placeholder="作品名・映画館・座席などで検索">
+      <div class="hist-row">
+        <select id="histSort">
+          <option value="desc">新しい順</option>
+          <option value="asc">古い順</option>
+        </select>
+        <select id="histFormat"><option value="">フォーマット：すべて</option></select>
+        <select id="histMonth"><option value="">年月：すべて</option></select>
+      </div>
+      <div class="hist-count" id="histCount"></div>
+    </div>
+    <div id="historyList"></div>
+  </div>
+</div>
+
+<!-- 使い方 -->
+<div class="overlay" id="helpOverlay">
+  <div class="panel">
+    <div class="panel-head">
+      <h3>使い方</h3>
+      <button class="x-btn" id="helpClose" aria-label="閉じる">×</button>
+    </div>
+    <div class="doc-body">
+      <h4>チケットを登録する</h4>
+      <p>「＋ チケットを追加」から登録します。最初は手入力フォームが開きます。作品名・上映日・開始時刻・終了時刻・映画館・フォーマット・座席などを入力して「保存する」を押してください。</p>
+      <h4>メールから読み取る</h4>
+      <p>追加画面で「メールから読み取り」に切り替え、予約完了メールの本文を貼り付けて「読み取る」を押すと、日時・映画館・座席・フォーマット・ムビチケなどを自動で入力します。読み取れなかった項目は手で修正できます。送信元メールアドレスをメニューに登録し、メールを From 行ごと貼り付けると、映画館の判定精度が上がります。</p>
+      <h4>上映区分・ムビチケ</h4>
+      <p>「発声可能上映／通常上映」と「ムビチケ利用／非利用」を選べます。発声可能上映のチケットにはピンクのバッジが付きます。</p>
+      <h4>鑑賞中・鑑賞履歴</h4>
+      <p>開始時刻を過ぎると「鑑賞中」になり、終了時刻（または上映時間から計算した終了時刻）を過ぎると、自動的にトップ画面から「鑑賞履歴」へ移動します。鑑賞履歴は検索・並び替え・フォーマット・年月で絞り込めます。</p>
+      <h4>編集・削除</h4>
+      <p>カードを長押し（パソコンでは右クリック）すると、編集・削除ボタンが表示されます。</p>
+      <h4>表示モード</h4>
+      <p>メニューからホワイト・ネイビー・ブラックを切り替えられます。</p>
+      <h4>データの保存について</h4>
+      <p>登録した内容は、この端末のこのブラウザ内にのみ保存されます。サーバーには送信されません。ブラウザのデータ削除・プライベートモード・別の端末やブラウザでは内容が引き継がれない点にご注意ください。</p>
+    </div>
+  </div>
+</div>
+
+<!-- お問い合わせ -->
+<div class="overlay" id="contactOverlay">
+  <div class="panel">
+    <div class="panel-head">
+      <h3>お問い合わせ</h3>
+      <button class="x-btn" id="contactClose" aria-label="閉じる">×</button>
+    </div>
+    <div class="doc-body">
+      <p>ご意見・不具合の報告はこちらからお願いします。</p>
+      <div id="contactLinks"></div>
+      <p class="contact-empty" id="contactEmpty" style="display:none;">連絡先はまだ設定されていません。</p>
+    </div>
+  </div>
+</div>
+
+<!-- 更新履歴 -->
+<div class="overlay" id="changelogOverlay">
+  <div class="panel">
+    <div class="panel-head">
+      <h3>更新履歴</h3>
+      <button class="x-btn" id="changelogClose" aria-label="閉じる">×</button>
+    </div>
+    <div class="doc-body" id="changelogBody"></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -449,6 +582,21 @@ const KEY = "mycinema.tickets.v1";
 const THEME_KEY = "mycinema.theme.v1";
 const SENDERS_KEY = "mycinema.senders.v1";
 const DEFAULT_RUNTIME = 120; // minutes, used when runtime is unknown
+
+/* ===== configure these for distribution ===== */
+const GITHUB_URL = "https://github.com/H4ru-ycy/cinema-tickets-schedule";    // 例: "https://github.com/yourname/cinema-memo"
+const CONTACT_EMAIL = "h4ru.kyi2943@gmail.com"; // 例: "you@example.com"
+
+/* ===== version history (newest first) ===== */
+const APP_VERSION = "1.5.0";
+const CHANGELOG = [
+  { v:"1.5.0", date:"2026-09-16", items:["上映フォーマットを追加（ULTIRA、THX、Meta Sound など多数）","更新履歴を追加"] },
+  { v:"1.4.0", date:"2026-09-16", items:["鑑賞履歴を追加：上映終了時刻を過ぎたチケットが自動で移動","鑑賞履歴を検索・並び替え・フォーマット・年月で絞り込み可能に","「使い方」「お問い合わせ」をメニューに追加","GitHubリンクを追加"] },
+  { v:"1.3.0", date:"2026-09-16", items:["終了時刻の入力欄を追加","上映予定カードに終了時刻を表示","カードをシンプル・コンパクトなデザインに変更","カードを長押しで編集・削除を表示","ムビチケ表示を水平に修正"] },
+  { v:"1.2.0", date:"2026-09-15", items:["上映フォーマットを追加（ULTRA 4DX、LIVE ZOUND、極音 など）","発声可能上映／通常上映の区分を追加"] },
+  { v:"1.1.0", date:"2026-09-15", items:["表示モード（ホワイト／ネイビー／ブラック）を追加","送信元メールアドレスの登録を追加","開始・終了時刻に応じて鑑賞中／鑑賞済みを自動表示"] },
+  { v:"1.0.0", date:"2026-09-15", items:["初版：チケットの登録・一覧、予約メールの読み取り、ムビチケ利用／非利用"] }
+];
 
 let _mem = {};
 const store = {
@@ -570,25 +718,32 @@ function render(){
   const cls = tickets.map(t=>({t, c:classify(t, now)}));
   const nowArr  = cls.filter(x=>x.c.sec==="now").sort((a,b)=>a.c.sortStart-b.c.sortStart);
   const upArr   = cls.filter(x=>x.c.sec==="upcoming").sort((a,b)=>a.c.sortStart-b.c.sortStart);
-  const doneArr = cls.filter(x=>x.c.sec==="done").sort((a,b)=>b.c.sortStart-a.c.sortStart);
+  const doneCount = cls.filter(x=>x.c.sec==="done").length;
+  const topCount = nowArr.length + upArr.length;
 
   if(tickets.length){
     const parts = [];
     if(nowArr.length) parts.push(`鑑賞中 <b>${nowArr.length}</b>`);
     parts.push(`これから <b>${upArr.length}</b>`);
-    parts.push(`全 <b>${tickets.length}</b>`);
+    parts.push(`履歴 <b>${doneCount}</b>`);
     $("tally").innerHTML = parts.join(" ／ ");
   }else{
     $("tally").innerHTML = "";
   }
 
   const list = $("list");
-  if(tickets.length === 0){
-    list.innerHTML = `<div class="empty">
-      <div class="big">🎬</div>
-      <p>まだチケットがありません。</p>
-      <p>「＋ チケットを追加」から、手入力で登録するか<br>予約メールを貼り付けて追加できます。</p>
-    </div>`;
+  if(topCount === 0){
+    list.innerHTML = doneCount
+      ? `<div class="empty">
+           <div class="big">🎬</div>
+           <p>これから見る予定はありません。</p>
+           <p>過去のチケットはメニューの「鑑賞履歴」で確認できます。</p>
+         </div>`
+      : `<div class="empty">
+           <div class="big">🎬</div>
+           <p>まだチケットがありません。</p>
+           <p>「＋ チケットを追加」から、手入力で登録するか<br>予約メールを貼り付けて追加できます。</p>
+         </div>`;
     return;
   }
 
@@ -603,15 +758,13 @@ function render(){
     upArr.forEach((x,i)=> html += card(x.t, {isPast:false, status:null, isNext:i===0 && !!x.t.date}));
     html += `</div>`;
   }
-  if(doneArr.length){
-    html += `<div class="section"><div class="section-head past"><h2>鑑賞済み</h2><span class="count">${doneArr.length}</span></div>`;
-    doneArr.forEach(x=> html += card(x.t, {isPast:true, status:x.c.status, isNext:false}));
-    html += `</div>`;
-  }
   list.innerHTML = html;
+  attachCardHandlers(list);
+}
 
-  list.querySelectorAll("[data-edit]").forEach(b=> b.onclick = ()=> openEdit(b.dataset.edit));
-  list.querySelectorAll("[data-del]").forEach(b=> b.onclick = ()=> del(b.dataset.del));
+function attachCardHandlers(container){
+  container.querySelectorAll("[data-edit]").forEach(b=> b.onclick = ()=> openEdit(b.dataset.edit));
+  container.querySelectorAll("[data-del]").forEach(b=> b.onclick = ()=> del(b.dataset.del));
 }
 
 function card(t, opts){
@@ -893,10 +1046,91 @@ $("addSender").onclick = ()=>{
   if(inputs.length) inputs[inputs.length-1].focus();
 };
 
+/* ---------- menu navigation: 鑑賞履歴 / 使い方 / お問い合わせ ---------- */
+function openOverlay(id){ $("menuOverlay").classList.remove("open"); $(id).classList.add("open"); }
+function closeOverlay(id){ $(id).classList.remove("open"); }
+
+$("navHistory").onclick = ()=>{ openOverlay("historyOverlay"); openHistory(); };
+$("navHelp").onclick    = ()=> openOverlay("helpOverlay");
+$("navContact").onclick = ()=> openOverlay("contactOverlay");
+$("navChangelog").onclick = ()=>{ openOverlay("changelogOverlay"); renderChangelog(); };
+
+$("historyClose").onclick = ()=> closeOverlay("historyOverlay");
+$("helpClose").onclick    = ()=> closeOverlay("helpOverlay");
+$("contactClose").onclick = ()=> closeOverlay("contactOverlay");
+$("changelogClose").onclick = ()=> closeOverlay("changelogOverlay");
+["historyOverlay","helpOverlay","contactOverlay","changelogOverlay"].forEach(id=>{
+  $(id).onclick = e=>{ if(e.target === $(id)) closeOverlay(id); };
+});
+
+function renderChangelog(){
+  $("changelogBody").innerHTML = CHANGELOG.map(e =>
+    `<div class="cl-entry"><div class="cl-head"><span class="cl-ver">v${esc(e.v)}</span><span class="cl-date">${esc(e.date)}</span></div><ul class="cl-list">${e.items.map(i=>`<li>${esc(i)}</li>`).join("")}</ul></div>`
+  ).join("");
+}
+$("drawerVersion").textContent = "v" + APP_VERSION;
+
+let histFilters = { q:"", sort:"desc", format:"", month:"" };
+function openHistory(){
+  histFilters = { q:"", sort:"desc", format:"", month:"" };
+  $("histSearch").value = ""; $("histSort").value = "desc";
+  populateHistoryFilters();
+  renderHistoryList();
+}
+function doneTickets(){
+  const now = new Date();
+  return tickets.filter(t=>classify(t, now).sec==="done");
+}
+function populateHistoryFilters(){
+  const done = doneTickets();
+  const fmts = [...new Set(done.map(t=>t.format).filter(Boolean))].sort();
+  const fSel = $("histFormat");
+  fSel.innerHTML = `<option value="">フォーマット：すべて</option>` + fmts.map(f=>`<option value="${esc(f)}">${esc(f)}</option>`).join("");
+  if(fmts.includes(histFilters.format)) fSel.value = histFilters.format; else { fSel.value=""; histFilters.format=""; }
+  const months = [...new Set(done.map(t=>(t.date||"").slice(0,7)).filter(Boolean))].sort().reverse();
+  const mSel = $("histMonth");
+  mSel.innerHTML = `<option value="">年月：すべて</option>` + months.map(m=>{
+    const p = m.split("-"); return `<option value="${m}">${p[0]}年${+p[1]}月</option>`;
+  }).join("");
+  if(months.includes(histFilters.month)) mSel.value = histFilters.month; else { mSel.value=""; histFilters.month=""; }
+}
+function renderHistoryList(){
+  let done = doneTickets();
+  const q = histFilters.q.trim().toLowerCase();
+  if(q) done = done.filter(t => [t.title,t.theater,t.seat,t.format,t.screen,t.memo].map(v=>(v||"").toLowerCase()).join(" ").includes(q));
+  if(histFilters.format) done = done.filter(t => (t.format||"") === histFilters.format);
+  if(histFilters.month) done = done.filter(t => (t.date||"").slice(0,7) === histFilters.month);
+  const key = t => (t.date||"0000-00-00") + "T" + (t.time||"00:00");
+  done.sort((a,b)=> histFilters.sort==="asc" ? (key(a)<key(b)?-1:1) : (key(a)>key(b)?-1:1));
+
+  $("histCount").textContent = `${done.length} 件`;
+  const box = $("historyList");
+  if(!done.length){
+    box.innerHTML = `<div class="hist-empty">該当する鑑賞履歴はありません。</div>`;
+    return;
+  }
+  box.innerHTML = done.map(t=> card(t, {isPast:true, status:"鑑賞済み", isNext:false})).join("");
+  attachCardHandlers(box);
+}
+$("histSearch").oninput  = ()=>{ histFilters.q = $("histSearch").value; renderHistoryList(); };
+$("histSort").onchange   = ()=>{ histFilters.sort = $("histSort").value; renderHistoryList(); };
+$("histFormat").onchange = ()=>{ histFilters.format = $("histFormat").value; renderHistoryList(); };
+$("histMonth").onchange  = ()=>{ histFilters.month = $("histMonth").value; renderHistoryList(); };
+function refreshHistory(){ if($("historyOverlay").classList.contains("open")){ populateHistoryFilters(); renderHistoryList(); } }
+
+/* GitHub / contact links from config */
+(function setupLinks(){
+  if(GITHUB_URL){ const g = $("drawerGithub"); g.href = GITHUB_URL; g.style.display = "block"; }
+  let html = "";
+  if(CONTACT_EMAIL) html += `<a class="contact-btn" href="mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent("シネマチケットメモ お問い合わせ")}">メールで問い合わせる</a>`;
+  if(GITHUB_URL) html += `<a class="contact-link" href="${GITHUB_URL}/issues" target="_blank" rel="noopener">GitHub で報告する</a>`;
+  $("contactLinks").innerHTML = html;
+  if(!html) $("contactEmpty").style.display = "block";
+})();
+
 document.addEventListener("keydown", e=>{
   if(e.key === "Escape"){
-    $("overlay").classList.remove("open");
-    $("menuOverlay").classList.remove("open");
+    ["overlay","menuOverlay","historyOverlay","helpOverlay","contactOverlay","changelogOverlay"].forEach(id=>$(id).classList.remove("open"));
   }
 });
 
@@ -993,7 +1227,7 @@ $("form").onsubmit = e =>{
     tickets.push(data);
     toast("チケットを追加しました");
   }
-  save(); render(); closeAdd();
+  save(); render(); refreshHistory(); closeAdd();
 };
 
 function del(id){
@@ -1001,7 +1235,7 @@ function del(id){
   const name = t && t.title ? `「${t.title}」` : "このチケット";
   if(!confirm(name + " を削除しますか？")) return;
   tickets = tickets.filter(x=>x.id!==id);
-  save(); render();
+  save(); render(); refreshHistory();
   toast("削除しました");
 }
 
@@ -1020,13 +1254,12 @@ document.querySelectorAll("#themeOpts button").forEach(b=>b.classList.toggle("ac
 
 /* long-press (or right-click) to reveal 編集 / 削除 */
 (function setupLongPress(){
-  const listEl = $("list");
   let timer=null, fired=false, sx=0, sy=0;
   const clear = ()=>{ clearTimeout(timer); timer=null; };
-  const hideAll = ()=> listEl.querySelectorAll(".ticket.show-actions").forEach(t=>t.classList.remove("show-actions"));
+  const hideAll = ()=> document.querySelectorAll(".ticket.show-actions").forEach(t=>t.classList.remove("show-actions"));
   const reveal = el=>{ hideAll(); el.classList.add("show-actions"); };
 
-  listEl.addEventListener("touchstart", e=>{
+  document.addEventListener("touchstart", e=>{
     const t = e.target.closest(".ticket");
     if(!t) return;
     fired=false;
@@ -1034,14 +1267,14 @@ document.querySelectorAll("#themeOpts button").forEach(b=>b.classList.toggle("ac
     clear();
     timer=setTimeout(()=>{ fired=true; reveal(t); try{ navigator.vibrate && navigator.vibrate(15); }catch(_){} }, 500);
   }, {passive:true});
-  listEl.addEventListener("touchmove", e=>{
+  document.addEventListener("touchmove", e=>{
     if(!timer) return;
     if(Math.abs(e.touches[0].clientX-sx)>10 || Math.abs(e.touches[0].clientY-sy)>10) clear();
   }, {passive:true});
-  listEl.addEventListener("touchend", clear);
-  listEl.addEventListener("touchcancel", clear);
+  document.addEventListener("touchend", clear);
+  document.addEventListener("touchcancel", clear);
 
-  listEl.addEventListener("contextmenu", e=>{
+  document.addEventListener("contextmenu", e=>{
     const t = e.target.closest(".ticket");
     if(!t) return;
     e.preventDefault();
