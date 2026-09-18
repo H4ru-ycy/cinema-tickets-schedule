@@ -306,8 +306,6 @@
     transition:opacity .25s ease, transform .25s ease;
   }
   .egg-spot.charging{opacity:.9;transform:scale(1.06);transition:opacity 10s linear, transform 10s ease-out;}
-  .egg-spot.ready{opacity:1;transition:opacity .2s ease;animation:eggpulse .8s ease-in-out infinite;}
-  @keyframes eggpulse{0%,100%{transform:scale(1.08);}50%{transform:scale(1.2);}}
   .egg-overlay{background:rgba(0,0,0,.93);align-items:center;justify-content:center;padding:16px;}
   .egg-box{position:relative;width:100%;max-width:820px;}
   .egg-close{position:absolute;top:-42px;right:0;color:#fff;font-size:30px;z-index:2;}
@@ -315,6 +313,11 @@
   .egg-player iframe{position:absolute;inset:0;width:100%;height:100%;border:0;}
   .egg-link{display:block;text-align:center;margin-top:12px;color:rgba(255,255,255,.75);font-size:13px;font-weight:700;text-decoration:none;}
   .egg-link:hover{color:#fff;}
+  .egg-countdown{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.9);z-index:95;display:none;text-align:center;pointer-events:none;background:rgba(0,0,0,.82);border:1px solid rgba(255,255,255,.15);padding:24px 34px;border-radius:20px;backdrop-filter:blur(4px);opacity:0;transition:opacity .15s ease, transform .15s ease;}
+  .egg-countdown.show{display:block;opacity:1;transform:translate(-50%,-50%) scale(1);}
+  .egg-count-num{font-size:62px;font-weight:800;line-height:1;color:#fff;font-variant-numeric:tabular-nums;}
+  .egg-count-msg{margin-top:12px;font-size:15px;font-weight:700;color:var(--gold);}
+  .egg-count-msg:empty{display:none;}
 
   /* toast */
   .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);background:var(--panel-2);border:1px solid var(--panel-line);color:var(--panel-ink);padding:11px 18px;border-radius:11px;font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .25s ease, transform .25s ease;z-index:80;box-shadow:0 10px 30px -12px rgba(0,0,0,.7);}
@@ -587,7 +590,7 @@
       <h4>データの保存について</h4>
       <p>登録した内容は、この端末のこのブラウザ内にのみ保存されます。サーバーには送信されません。ブラウザのデータ削除・プライベートモード・別の端末やブラウザでは内容が引き継がれない点にご注意ください。</p>
       <h4>ヒント 🎬</h4>
-      <p>メニューのいちばん下、バージョン表示の下にある“何もない”ところ…。10秒じっと押し続けて、ブルッと震えたら、そっと指を離してみると？🎵</p>
+      <p>メニューのいちばん下、バージョン表示の下にある“何もない”ところ…。じっと押し続けると10秒のカウントダウンが始まり、0で「指を離してください」と出たら、そっと指を離してみると？🎵</p>
     </div>
   </div>
 </div>
@@ -625,6 +628,10 @@
     <div class="egg-player" id="eggPlayer"></div>
     <a class="egg-link" href="https://m.youtube.com/watch?v=356MRZ6P5h0" target="_blank" rel="noopener">▶ YouTubeで開く</a>
   </div>
+</div>
+<div class="egg-countdown" id="eggCountdown">
+  <div class="egg-count-num" id="eggCountNum">10</div>
+  <div class="egg-count-msg" id="eggCountMsg"></div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -1270,22 +1277,37 @@ $("eggClose").onclick = closeEgg;
 $("eggOverlay").onclick = e=>{ if(e.target === $("eggOverlay")) closeEgg(); };
 (function setupEgg(){
   const spot = $("eggSpot");
-  let timer = null, armed = false, sx = 0, sy = 0;
+  const cd = $("eggCountdown"), cdNum = $("eggCountNum"), cdMsg = $("eggCountMsg");
+  let ticker = null, armed = false, sx = 0, sy = 0, n = 10;
   const begin = ()=>{
-    armed = false;
+    armed = false; n = 10;
     spot.classList.add("charging");
-    clearTimeout(timer);
-    timer = setTimeout(()=>{ armed = true; spot.classList.remove("charging"); spot.classList.add("ready"); try{ navigator.vibrate && navigator.vibrate(35); }catch(e){} }, 10000);
+    cdNum.textContent = "10"; cdMsg.textContent = "";
+    cd.classList.add("show");
+    clearInterval(ticker);
+    ticker = setInterval(()=>{
+      n--;
+      if(n > 0){
+        cdNum.textContent = String(n);
+      }else{
+        cdNum.textContent = "0";
+        cdMsg.textContent = "指を離してください";
+        armed = true;
+        clearInterval(ticker); ticker = null;
+        try{ navigator.vibrate && navigator.vibrate(35); }catch(e){}
+      }
+    }, 1000);
   };
-  const reset = ()=>{ clearTimeout(timer); timer = null; spot.classList.remove("charging","ready"); };
+  const reset = ()=>{ clearInterval(ticker); ticker = null; spot.classList.remove("charging"); cd.classList.remove("show"); };
+  const cancel = ()=>{ armed = false; reset(); };
   const release = ()=>{ const fire = armed; armed = false; reset(); if(fire) playEgg(); };
   spot.addEventListener("touchstart", e=>{ const t=e.touches[0]; sx=t.clientX; sy=t.clientY; begin(); }, {passive:true});
-  spot.addEventListener("touchmove", e=>{ const t=e.touches[0]; if(Math.abs(t.clientX-sx)>30 || Math.abs(t.clientY-sy)>30){ armed=false; reset(); } }, {passive:true});
+  spot.addEventListener("touchmove", e=>{ const t=e.touches[0]; if(Math.abs(t.clientX-sx)>30 || Math.abs(t.clientY-sy)>30) cancel(); }, {passive:true});
   spot.addEventListener("touchend", release);
-  spot.addEventListener("touchcancel", ()=>{ armed=false; reset(); });
+  spot.addEventListener("touchcancel", cancel);
   spot.addEventListener("mousedown", begin);
   spot.addEventListener("mouseup", release);
-  spot.addEventListener("mouseleave", ()=>{ armed=false; reset(); });
+  spot.addEventListener("mouseleave", cancel);
 })();
 
 let histFilters = { q:"", sort:"desc", format:"", month:"" };
